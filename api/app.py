@@ -38,21 +38,7 @@ def get_results():
         "Course": soup.find(id="ContentPlaceHolder1_DataList1_CourseLabel_0").text.strip(),
     }
     
-    # Extract SGPA, CGPA, Remarks, and Publish Date
-    sgpa = soup.find(id="ContentPlaceHolder1_DataList5_GROSSTHEORYTOTALLabel_0").text.strip()
-    cgpa = soup.select_one("#ContentPlaceHolder1_GridView3 td:last-child").text.strip()
-    remarks = soup.find(id="ContentPlaceHolder1_DataList3_remarkLabel_0").text.strip() if soup.find(id="ContentPlaceHolder1_DataList3_remarkLabel_0") else "N/A"
-    publish_date = soup.select_one("#ContentPlaceHolder1_DataList3 td:last-child").text.strip()
-    
-    # Update result info with additional fields
-    result_info.update({
-        "SGPA": sgpa,
-        "CGPA": cgpa,
-        "Remarks": remarks,
-        "Publish Date": publish_date,
-    })
-    
-    # Extracting theory subject results
+    # Extract theory and practical results
     theory_results = []
     theory_table = soup.find(id="ContentPlaceHolder1_GridView1")
     for row in theory_table.find_all("tr")[1:]:
@@ -67,7 +53,6 @@ def get_results():
             "Credit": cols[6].text.strip(),
         })
 
-    # Extracting practical subject results
     practical_results = []
     practical_table = soup.find(id="ContentPlaceHolder1_GridView2")
     for row in practical_table.find_all("tr")[1:]:
@@ -81,20 +66,27 @@ def get_results():
             "Grade": cols[5].text.strip(),
             "Credit": cols[6].text.strip(),
         })
-    
+
+    # Extract SGPA, CGPA, Remarks, and Publish Date and add it to the end
+    sgpa = soup.find(id="ContentPlaceHolder1_DataList5_GROSSTHEORYTOTALLabel_0").text.strip()
+    cgpa = soup.select_one("#ContentPlaceHolder1_GridView3 td:last-child").text.strip()
+    remarks = soup.find(id="ContentPlaceHolder1_DataList3_remarkLabel_0").text.strip() if soup.find(id="ContentPlaceHolder1_DataList3_remarkLabel_0") else "N/A"
+    publish_date = soup.select_one("#ContentPlaceHolder1_DataList3 td:last-child").text.strip()
+
     # Combine all data into one dictionary
     result_data = {
         "Result Info": result_info,
         "Theory Results": theory_results,
-        "Practical Results": practical_results
+        "Practical Results": practical_results,
+        "Summary": {
+            "SGPA": sgpa,
+            "CGPA": cgpa,
+            "Remarks": remarks,
+            "Publish Date": publish_date
+        }
     }
     
     return jsonify(result_data)
-
-
-@app.route('/api', methods=['GET'])
-def api_home():
-    return "@Pragyan"
 
 if __name__ == '__main__':
     app.run(debug=True)
